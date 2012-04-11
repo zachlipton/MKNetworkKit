@@ -411,7 +411,7 @@
 
 -(BOOL) updateHandlersFromOperation:(MKNetworkOperation*) operation {
   @synchronized(handlersMutexObject) {
-    if (self.state == MKNetworkOperationStateFinished) {
+    if (self.state == MKNetworkOperationStateFinished || self.isCancelled) {
       return NO;
     }
     [self.responseBlocks addObjectsFromArray:operation.responseBlocks];
