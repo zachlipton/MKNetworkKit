@@ -3,7 +3,7 @@
 //  MKNetworkKit
 //
 //  Created by Mugunth Kumar (@mugunthkumar) on 11/11/11.
-//  Copyright (C) 2011-2020 by Steinlogic
+//  Copyright (C) 2011-2020 by Steinlogic Consulting and Training Pte Ltd
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -376,6 +376,8 @@
 - (void)encodeWithCoder:(NSCoder *)encoder 
 {
   [encoder encodeInteger:self.stringEncoding forKey:@"stringEncoding"];
+  [encoder encodeInteger:_postDataEncoding forKey:@"postDataEncoding"];
+
   [encoder encodeObject:self.uniqueId forKey:@"uniqueId"];
   [encoder encodeObject:self.request forKey:@"request"];
   [encoder encodeObject:self.response forKey:@"response"];
@@ -401,6 +403,7 @@
   self = [super init];
   if (self) {
     [self setStringEncoding:[decoder decodeIntegerForKey:@"stringEncoding"]];
+    _postDataEncoding = [decoder decodeIntegerForKey:@"postDataEncoding"];
     self.request = [decoder decodeObjectForKey:@"request"];
     self.uniqueId = [decoder decodeObjectForKey:@"uniqueId"];
     
@@ -426,6 +429,7 @@
 {
   MKNetworkOperation *theCopy = [[[self class] allocWithZone:zone] init];  // use designated initializer
   
+  theCopy.postDataEncoding = _postDataEncoding;
   [theCopy setStringEncoding:self.stringEncoding];
   [theCopy setUniqueId:[self.uniqueId copy]];
   
