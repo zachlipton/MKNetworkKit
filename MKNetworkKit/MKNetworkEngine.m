@@ -640,4 +640,9 @@ static NSOperationQueue *_sharedNetworkQueue;
   if(error) DLog(@"%@", error);
 }
 
+// Dijit additions
++(NSOperationQueue *)operationQueue {
+    return _sharedNetworkQueue;
+}
+
 @end

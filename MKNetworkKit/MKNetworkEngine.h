@@ -321,4 +321,7 @@
  */
 -(BOOL) isReachable;
 
+// Dijit additions:
++(NSOperationQueue *)operationQueue;
+
 @end
