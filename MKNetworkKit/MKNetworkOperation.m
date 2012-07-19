@@ -827,17 +827,11 @@
       
       [self.request setHTTPBody:[self bodyData]];
     }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
       self.connection = [[NSURLConnection alloc] initWithRequest:self.request 
                                                         delegate:self 
-                                                startImmediately:NO]; 
-      
-      [self.connection scheduleInRunLoop:[NSRunLoop currentRunLoop]
-                                 forMode:NSRunLoopCommonModes];
-      
+                                                startImmediately:NO];
+      [self.connection scheduleInRunLoop:[MKNetworkEngine runLoop] forMode:NSRunLoopCommonModes];
       [self.connection start];
-    });
     
     self.state = MKNetworkOperationStateExecuting;
   }

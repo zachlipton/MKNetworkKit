@@ -55,6 +55,8 @@
 @end
 
 static NSOperationQueue *_sharedNetworkQueue;
+static NSOperationQueue *_responseProcessingQueue;
+static NSRunLoop *_runLoop;
 
 @implementation MKNetworkEngine
 @synthesize hostName = _hostName;
@@ -73,6 +75,7 @@ static NSOperationQueue *_sharedNetworkQueue;
 // Network Queue is a shared singleton object.
 // no matter how many instances of MKNetworkEngine is created, there is one and only one network queue
 // In theory an app should contain as many network engines as the number of domains it talks to
+static void myCFTimerCallback() {};
 
 #pragma mark -
 #pragma mark Initialization
@@ -85,9 +88,63 @@ static NSOperationQueue *_sharedNetworkQueue;
       _sharedNetworkQueue = [[NSOperationQueue alloc] init];
       [_sharedNetworkQueue addObserver:[self self] forKeyPath:@"operationCount" options:0 context:NULL];
       [_sharedNetworkQueue setMaxConcurrentOperationCount:6];
-      
+      [_sharedNetworkQueue setSuspended:YES];
     });
-  }            
+  }   
+    if(!_responseProcessingQueue) {
+        static dispatch_once_t oncePredicate2;
+        dispatch_once(&oncePredicate2, ^{
+//            dispatch_queue_t queue = dispatch_queue_create("com.dijit.socialguide.netResponseHandler", NULL);
+            [NSThread detachNewThreadSelector:@selector(setupResponseThread) toTarget:self withObject:nil];
+//            dispatch_async(queue, ^{
+//                _runLoop = [NSRunLoop currentRunLoop];
+//                [_sharedNetworkQueue setSuspended:NO];
+//                CFRunLoopTimerContext context = {0, NULL, NULL, NULL, NULL};
+//                
+//                CFRunLoopTimerRef timer = CFRunLoopTimerCreate(kCFAllocatorDefault, 1000, 1000, 0, 0,
+//                                                               &myCFTimerCallback, &context);
+//                
+//                CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopCommonModes);
+//                NSLog(@"abc");
+//                CFRunLoopRun();
+//                NSLog(@"def");
+//            });
+//            _responseProcessingQueue = [[NSOperationQueue alloc] init];
+//            [_responseProcessingQueue setMaxConcurrentOperationCount:1];
+//            [_responseProcessingQueue setName:@"blah"];
+//            [_responseProcessingQueue addOperationWithBlock:^{
+//                _runLoop = [NSRunLoop currentRunLoop];
+//                [_sharedNetworkQueue setSuspended:NO];
+//                CFRunLoopTimerContext context = {0, NULL, NULL, NULL, NULL};
+//                
+//                CFRunLoopTimerRef timer = CFRunLoopTimerCreate(kCFAllocatorDefault, 1000, 1000, 0, 0,
+//                                                               &myCFTimerCallback, &context);
+//                
+//                CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopCommonModes);
+//                NSLog(@"abc");
+//                CFRunLoopRun();
+//                NSLog(@"def");
+//            }];
+        });
+    }
+}
+
++ (void) setupResponseThread {
+    @autoreleasepool {
+        [[NSThread currentThread] setName:@"com.dijit.socialguide.WebResponseThread"];
+        _runLoop = [NSRunLoop currentRunLoop];
+        [_sharedNetworkQueue setSuspended:NO];
+        // run loops need something in them or they just terminate immediately
+        CFRunLoopTimerContext context = {0, NULL, NULL, NULL, NULL};
+        
+        CFRunLoopTimerRef timer = CFRunLoopTimerCreate(kCFAllocatorDefault, 5000, 5000, 0, 0,
+                                                       &myCFTimerCallback, &context);
+        
+        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopCommonModes);
+        NSLog(@"abc");
+        CFRunLoopRun();
+        NSLog(@"defgh");
+    }
 }
 
 - (id) initWithHostName:(NSString*) hostName {
@@ -643,6 +700,9 @@ static NSOperationQueue *_sharedNetworkQueue;
 // Dijit additions
 +(NSOperationQueue *)operationQueue {
     return _sharedNetworkQueue;
+}
++(NSRunLoop *)runLoop {
+    return _runLoop;
 }
 
 @end

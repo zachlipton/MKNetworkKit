@@ -323,5 +323,6 @@
 
 // Dijit additions:
 +(NSOperationQueue *)operationQueue;
++(NSRunLoop *)runLoop;
 
 @end
