@@ -94,8 +94,9 @@ static void myCFTimerCallback() {};
     if(!_responseProcessingQueue) {
         static dispatch_once_t oncePredicate2;
         dispatch_once(&oncePredicate2, ^{
-//            dispatch_queue_t queue = dispatch_queue_create("com.dijit.socialguide.netResponseHandler", NULL);
             [NSThread detachNewThreadSelector:@selector(setupResponseThread) toTarget:self withObject:nil];
+// Alternate approach, preserved for posterity (zll):
+//            dispatch_queue_t queue = dispatch_queue_create("com.dijit.socialguide.netResponseHandler", NULL);
 //            dispatch_async(queue, ^{
 //                _runLoop = [NSRunLoop currentRunLoop];
 //                [_sharedNetworkQueue setSuspended:NO];
@@ -109,41 +110,28 @@ static void myCFTimerCallback() {};
 //                CFRunLoopRun();
 //                NSLog(@"def");
 //            });
-//            _responseProcessingQueue = [[NSOperationQueue alloc] init];
-//            [_responseProcessingQueue setMaxConcurrentOperationCount:1];
-//            [_responseProcessingQueue setName:@"blah"];
-//            [_responseProcessingQueue addOperationWithBlock:^{
-//                _runLoop = [NSRunLoop currentRunLoop];
-//                [_sharedNetworkQueue setSuspended:NO];
-//                CFRunLoopTimerContext context = {0, NULL, NULL, NULL, NULL};
-//                
-//                CFRunLoopTimerRef timer = CFRunLoopTimerCreate(kCFAllocatorDefault, 1000, 1000, 0, 0,
-//                                                               &myCFTimerCallback, &context);
-//                
-//                CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopCommonModes);
-//                NSLog(@"abc");
-//                CFRunLoopRun();
-//                NSLog(@"def");
-//            }];
         });
     }
 }
 
+// spawn off a separate thread to handle the NSURLConnection response processing
 + (void) setupResponseThread {
     @autoreleasepool {
         [[NSThread currentThread] setName:@"com.dijit.socialguide.WebResponseThread"];
+        // NSURLConnection needs a run loop on its background thread to push callbacks to its delegate
         _runLoop = [NSRunLoop currentRunLoop];
         [_sharedNetworkQueue setSuspended:NO];
         // run loops need something in them or they just terminate immediately
+        // so we'll just set an infrequent timer to keep it alive until connections get attached
         CFRunLoopTimerContext context = {0, NULL, NULL, NULL, NULL};
         
         CFRunLoopTimerRef timer = CFRunLoopTimerCreate(kCFAllocatorDefault, 5000, 5000, 0, 0,
                                                        &myCFTimerCallback, &context);
         
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopCommonModes);
-        NSLog(@"abc");
+        
+        // start up the runloop and run it forever
         CFRunLoopRun();
-        NSLog(@"defgh");
     }
 }
 
