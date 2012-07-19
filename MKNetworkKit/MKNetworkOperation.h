@@ -537,7 +537,7 @@ typedef enum {
 -(BOOL) isCacheable;
 -(void) setCachedData:(NSData*) cachedData;
 -(void) setCacheHandler:(MKNKResponseBlock) cacheHandler;
--(void) updateHandlersFromOperation:(MKNetworkOperation*) operation;
+-(BOOL) updateHandlersFromOperation:(MKNetworkOperation*) operation;
 -(void) updateOperationBasedOnPreviousHeaders:(NSMutableDictionary*) headers;
 -(NSString*) uniqueIdentifier;
 
