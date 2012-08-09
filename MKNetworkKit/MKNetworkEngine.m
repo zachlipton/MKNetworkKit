@@ -55,7 +55,6 @@
 @end
 
 static NSOperationQueue *_sharedNetworkQueue;
-static NSOperationQueue *_responseProcessingQueue;
 static NSRunLoop *_runLoop;
 
 @implementation MKNetworkEngine
@@ -91,7 +90,7 @@ static void myCFTimerCallback() {};
       [_sharedNetworkQueue setSuspended:YES];
     });
   }   
-    if(!_responseProcessingQueue) {
+    if(!_runLoop) {
         static dispatch_once_t oncePredicate2;
         dispatch_once(&oncePredicate2, ^{
             [NSThread detachNewThreadSelector:@selector(setupResponseThread) toTarget:self withObject:nil];
@@ -215,7 +214,7 @@ static void myCFTimerCallback() {};
                                                         object:[NSNumber numberWithInteger:[_sharedNetworkQueue operationCount]]];
 #if TARGET_OS_IPHONE
     [UIApplication sharedApplication].networkActivityIndicatorVisible = 
-    ([_sharedNetworkQueue.operations count] > 0);        
+    ([_sharedNetworkQueue operationCount] > 0);
 #endif
   }
   else {
