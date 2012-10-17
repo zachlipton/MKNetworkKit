@@ -471,20 +471,22 @@ static void myCFTimerCallback() {};
           [_sharedNetworkQueue addOperation:operation];
         else if(forceReload)
           [_sharedNetworkQueue addOperation:operation];
-        // else don't do anything
+          // else don't do anything
       }
       else {
-        // This operation is already being processed
-        MKNetworkOperation *queuedOperation = (MKNetworkOperation*) [operations objectAtIndex:index];
-        [queuedOperation updateHandlersFromOperation:operation];
-        BOOL opUpdated = [queuedOperation updateHandlersFromOperation:operation];
-        if (!opUpdated) {
-          // Previous operation was finished already
-          [_sharedNetworkQueue addOperation:operation];
-        }
+          // This operation is already being processed
+          MKNetworkOperation *queuedOperation = (MKNetworkOperation*) [operations objectAtIndex:index];
+          if ([queuedOperation respondsToSelector:@selector(updateHandlersFromOperation:)]) {
+              [queuedOperation updateHandlersFromOperation:operation];
+              BOOL opUpdated = [queuedOperation updateHandlersFromOperation:operation];
+              if (!opUpdated) {
+                  // Previous operation was finished already
+                  [_sharedNetworkQueue addOperation:operation];
+              }
+          } else {
+              [_sharedNetworkQueue addOperation:operation];
+          }
       }
-      
-      
     });
     } else {
       
